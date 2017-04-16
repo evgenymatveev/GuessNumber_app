@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">GUESS THE NUMBER!</string>
+    <string name="button_guess">Проверить</string>
+    <string name="button_start">Начать игру</string>
+    <string name="editText"></string>
+    <string name="text_view"></string>
+    <string name="text_view_attemp"></string>
+    <string name="text_button_start">"Число загадано, введите ваше в диапазоне от 1 до 10"</string>
+    <string name="text_button_start_attempt">"У Вас 3 попытки"</string>
+    <string name="button_guess_1">Введите число от 1 до 10!</string>
+    <string name="button_guess_2">Ваше число больше</string>
+    <string name="button_guess_6">Ваше число меньше</string>
+    <string name="button_guess_5">"Начать сначала"</string>
+</resources>
