@@ -2,101 +2,114 @@ package ru.ematveev.guessnumber2;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
-
-    private Button button_guess;
+    private final static int DEFAULT_ATTEMPT_COUNT = 3;
+    private final GenerateNumberController g = new GenerateNumberController(new Random());
+    private GuessResult result;
+    private Button buttonGuess;
     private Button buttonStart;
-    private TextView text_view;
-    private TextView text_view_attemp;
-    private EditText editText;
+    private TextView textViewFeedBack;
+    private TextView textViewAttempt;
+    private EditText editTextInputNumber;
     private int resAttempt;
-    private int numberAttempt = 3;
-    private String x;
+    private int numberAttempt = DEFAULT_ATTEMPT_COUNT;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button_guess = (Button) findViewById(R.id.button_guess);
+        buttonGuess = (Button) findViewById(R.id.button_guess);
         buttonStart = (Button) findViewById(R.id.button_start);
-        text_view = (TextView) findViewById(R.id.text_view);
-        text_view_attemp = (TextView) findViewById(R.id.text_view_attemp);
-        editText = (EditText) findViewById(R.id.editText);
+        textViewFeedBack = (TextView) findViewById(R.id.text_view_feed_back);
+        textViewAttempt = (TextView) findViewById(R.id.text_view_attempt);
+        editTextInputNumber = (EditText) findViewById(R.id.edit_text_input_number);
 
-        text_view.setText("Сыграем?)");
-        button_guess.setEnabled(false);
+        textViewFeedBack.setText(R.string.text_view_greeting);
+        buttonGuess.setEnabled(false);
 
         buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                numberAttempt = 3;
-                editText.setText("");
-                GenerateNumberController g = new GenerateNumberController(new Random());
+                numberAttempt = DEFAULT_ATTEMPT_COUNT;
+                editTextInputNumber.setText("");
                 resAttempt = g.generate(10);
-                text_view.setText(R.string.text_button_start);
-                text_view_attemp.setText(R.string.text_button_start_attempt);
-                button_guess.setEnabled(true);
+                textViewFeedBack.setText(R.string.text_view_start);
+                textViewAttempt.setText(R.string.text_start_attempt);
+                editTextInputNumber.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        if (editTextInputNumber.getText().toString().isEmpty()) {
+                            buttonGuess.setEnabled(false);
+                        } else {
+                            buttonGuess.setEnabled(true);
+                        }
+                    }
+                });
             }
         });
 
-        button_guess.setOnClickListener(new View.OnClickListener() {
+        buttonGuess.setOnClickListener(new View.OnClickListener() {
+            final String x = "\n";
             @Override
             public void onClick(View v) {
-                if (editText.getText().toString().isEmpty()) {
-                    text_view.setText(R.string.button_guess_1);
-                } else {
-                    int guess = Integer.parseInt(editText.getText().toString());
-                    final GuessResult result = GenerateNumberController.numberEqualityCheck(guess, resAttempt);
+                final int guess = Integer.parseInt(editTextInputNumber.getText().toString());
+                result = GenerateNumberController.numberEqualityCheck(guess, resAttempt);
+                if (result == GuessResult.GUESS_IS_BIGGER ||
+                        result == GuessResult.GUESS_IS_SMALL) {
+                    numberAttempt--;
                     if (result == GuessResult.GUESS_IS_BIGGER) {
-                        numberAttempt--;
-                        text_view.setText(R.string.button_guess_2);
-                        switch (numberAttempt) {
-                            case 1:
-                                x = "попытка";
-                                break;
-                            default:
-                                x = "попытки";
-                        }
-                        text_view_attemp.setText("Осталось" + " " + numberAttempt + " " + x);
-                        editText.setText("");
-                        if (numberAttempt == 0) {
-                            text_view.setText("Вы не угадали!)" + "\n" + "Попробуйте еще раз!");
-                            TryAgain.tryAgain(button_guess, buttonStart, text_view_attemp, editText);
-                        }
-                    } else if (result == GuessResult.GUESS_IS_SMALL) {
-                        numberAttempt--;
-                        text_view.setText(R.string.button_guess_6);
-                        switch (numberAttempt) {
-                            case 1:
-                                x = "попытка";
-                                break;
-                            default:
-                                x = "попытки";
-                        }
-                        text_view_attemp.setText("Осталось" + " " + numberAttempt + " " + x);
-                        editText.setText("");
-                        if (numberAttempt == 0) {
-                            text_view.setText("Вы не угадали!)" + "\n" + "Попробуйте еще раз!");
-                            TryAgain.tryAgain(button_guess, buttonStart, text_view_attemp, editText);
-                        }
+                        textViewFeedBack.setText(R.string.text_view_number_bigger);
                     } else {
-                        if (result == GuessResult.EQUAL) {
-                            text_view.setText("Вы угадали!" + "\n" + "Игра окончена!");
-                            TryAgain.tryAgain(button_guess, buttonStart, text_view_attemp, editText);
-                        }
+                        textViewFeedBack.setText(R.string.text_view_number_smaller);
+                    }
+                    String strOld = getResources().getString(R.string.text_view_attempt_number);
+                    String strNew = String.format(strOld, numberAttempt);
+                    textViewAttempt.setText(strNew);
+                    editTextInputNumber.setText("");
+                    if (numberAttempt == 0) {
+                        String s = getResources().getString(R.string.text_view_feed_back_no_guess);
+                        String sNew = String.format(s, x);
+                        textViewFeedBack.setText(sNew);
+                        SetFieldStart.setInitState(buttonGuess, buttonStart,
+                                textViewAttempt, editTextInputNumber);
+                    }
+                } else {
+                    if (result == GuessResult.EQUAL) {
+                        String s2 = getResources().getString(R.string.text_view_feed_back_guess);
+                        String sNew2 = String.format(s2, x);
+                        textViewFeedBack.setText(sNew2);
+                        SetFieldStart.setInitState(buttonGuess, buttonStart,
+                                textViewAttempt, editTextInputNumber);
                     }
                 }
             }
-
         });
     }
 }
+
+
+
+
+
+
+
+
+
 
